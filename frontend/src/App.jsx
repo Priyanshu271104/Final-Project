@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "./hooks/useAuth";
 
-
 import useWishlist from "./hooks/useWishlist";
 
 import Header from "./components/Header";
@@ -12,27 +11,24 @@ import WishlistView from "./components/WishlistView";
 import AuthModal from "./components/AuthModal";
 
 export default function App() {
- const [view, setView] = useState("home");
-const [previousView, setPreviousView] = useState("home");
-const [searchQuery, setSearchQuery] = useState("");
-const [selectedProduct, setSelectedProduct] = useState(null);
+  const [view, setView] = useState("home");
+  const [previousView, setPreviousView] = useState("home");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-const { currentUser, authLoading, logout } = useAuth();
+  const { currentUser, authLoading, logout } = useAuth();
 
-const {
-  wishlist,
-  wishlistLoading,
-  wishlistError,
-  toggleWishlist,
-  setTargetPrice,
-  clearTargetPrice,
-} = useWishlist(currentUser);
+  const {
+    wishlist,
+    wishlistLoading,
+    wishlistError,
+    toggleWishlist,
+    setTargetPrice,
+    clearTargetPrice,
+  } = useWishlist(currentUser);
 
-const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-const [authMode, setAuthMode] = useState("login");
-
-  
-
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState("login");
 
   const handleSearch = (query) => {
     setSearchQuery(query);
@@ -50,14 +46,12 @@ const [authMode, setAuthMode] = useState("login");
     setIsAuthModalOpen(true);
   };
   if (authLoading) {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <p className="text-slate-500 font-medium">
-        Loading...
-      </p>
-    </div>
-  );
-}
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <p className="text-slate-500 font-medium">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="font-sans antialiased bg-slate-50 min-h-screen text-slate-900">
