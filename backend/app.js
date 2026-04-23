@@ -58,6 +58,16 @@ app.get("/health", (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "PriceLens API is running",
+  });
+});
+
+app.get("/healthz", (req, res) => {
+  res.status(200).send("OK");
+});
 
 app.use('/api', searchRoutes);
 app.use('/api', cronRoutes);
