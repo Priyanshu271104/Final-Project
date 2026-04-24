@@ -8,7 +8,7 @@ const admin = require('firebase-admin');
 const nodemailer = require('nodemailer');
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173')
   .split(',')
@@ -70,6 +70,14 @@ app.use(cors({
   methods: ['GET', 'POST'],
 }));
 app.use(express.json({ limit: '10kb' }));
+
+app.get('/', (req, res) => {
+  res.json({ ok: true, service: 'pricelens-backend' });
+});
+
+app.get('/health', (req, res) => {
+  res.json({ ok: true });
+});
 
 const searchLimiter = rateLimit({
   windowMs: 60 * 1000,
