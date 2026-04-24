@@ -14,7 +14,8 @@ const Results = ({ query, onBack, onSelectProduct }) => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`http://localhost:5000/api/search?q=${encodeURIComponent(query)}`);
+        const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${apiBase}/api/search?q=${encodeURIComponent(query)}`);
         
         if (!response.ok) {
             const errorData = await response.json();
