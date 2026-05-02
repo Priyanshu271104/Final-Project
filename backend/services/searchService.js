@@ -24,7 +24,6 @@ async function serpapiSearch(query) {
 
 async function searchProducts(query) {
   const trimmed = validateSearchQuery(query);
-
   const results = await serpapiSearch(trimmed);
 
   if (!results.length) return [];
@@ -35,32 +34,33 @@ async function searchProducts(query) {
       item.title?.toLowerCase().includes(trimmed.toLowerCase())
     ) || results[0];
 
-  // ✅ Safe keyword extraction
+  // ✅ Extract keyword safely
   const keyword =
     primaryProduct.title?.split(" ")[0]?.toLowerCase() ||
     trimmed.toLowerCase();
 
-  // ✅ Filter similar products
+  // ✅ Filter similar items
   const similarResults = results.filter((item) =>
     item.title?.toLowerCase().includes(keyword)
   );
 
-  // ✅ Extract stores
+  // ✅ Extract store data with classification
   const storesRaw = similarResults
-    .slice(0, 8) // slightly more to improve filtering later
+    .slice(0, 10)
     .map((item) => {
       const price = Number(extractPrice(item.price)) || 0;
       const title = item.title?.toLowerCase() || "";
+      const source = (item.source || "").toLowerCase();
 
-      // ❌ remove junk listings
-      if (
+      if (price < 1000 || price > 200000) return null;
+
+      const isResale =
+        source.includes("cashify") ||
+        source.includes("olx") ||
+        source.includes("quikr") ||
         title.includes("refurbished") ||
         title.includes("used") ||
-        title.includes("renewed")
-      ) return null;
-
-      // ❌ remove unrealistic prices
-      if (price < 1000 || price > 200000) return null;
+        title.includes("renewed");
 
       return {
         name: item.source || "Store",
@@ -69,11 +69,12 @@ async function searchProducts(query) {
           ? item.source.substring(0, 2).toUpperCase()
           : "🛒",
         link: item.product_link || item.link || "",
+        type: isResale ? "resale" : "retail", // ✅ KEY ADDITION
       };
     })
     .filter(Boolean);
 
-  // ✅ Deduplicate stores (keep lowest price per store)
+  // ✅ Deduplicate stores (lowest price per store)
   const uniqueStores = Object.values(
     storesRaw.reduce((acc, store) => {
       if (!acc[store.name] || acc[store.name].price > store.price) {
@@ -83,20 +84,40 @@ async function searchProducts(query) {
     }, {})
   );
 
-  // ✅ Compute best price
-  const bestPrice =
-    uniqueStores.length > 0
-      ? Math.min(...uniqueStores.map((s) => s.price))
-      : Number(extractPrice(primaryProduct.price)) || 0;
+  // ✅ Split by type
+  const retailStores = uniqueStores.filter((s) => s.type === "retail");
+  const resaleStores = uniqueStores.filter((s) => s.type === "resale");
 
-  // ✅ Filter out outlier prices (VERY IMPORTANT)
+  // ✅ Choose baseline from retail (more reliable)
+  const baselineSource =
+    retailStores.length > 0 ? retailStores : uniqueStores;
+
+  const prices = baselineSource.map((s) => s.price);
+
+  const median = (arr) => {
+    if (!arr.length) return 0;
+    const sorted = [...arr].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2
+      ? sorted[mid]
+      : Math.round((sorted[mid - 1] + sorted[mid]) / 2);
+  };
+
+  const baseline = median(prices) || prices[0] || 0;
+
+  // ✅ Filter only extreme outliers (loose range)
   const filteredStores = uniqueStores.filter(
-    (s) => s.price >= bestPrice * 0.6 && s.price <= bestPrice * 1.4
+    (s) => s.price >= baseline * 0.5 && s.price <= baseline * 1.8
   );
 
-  // fallback if filtering too aggressive
   const finalStores =
-    filteredStores.length > 0 ? filteredStores : uniqueStores;
+    filteredStores.length >= 2 ? filteredStores : uniqueStores;
+
+  // ✅ Best price
+  const bestPrice =
+    finalStores.length > 0
+      ? Math.min(...finalStores.map((s) => s.price))
+      : Number(extractPrice(primaryProduct.price)) || 0;
 
   // ✅ Demo history
   const history = [
