@@ -27,9 +27,7 @@ async function searchProducts(query) {
 
   const results = await serpapiSearch(trimmed);
 
-  if (!results.length) {
-    return [];
-  }
+  if (!results.length) return [];
 
   // ✅ Find best matching product
   const primaryProduct =
@@ -47,13 +45,21 @@ async function searchProducts(query) {
     item.title?.toLowerCase().includes(keyword)
   );
 
-  // ✅ Extract stores safely
+  // ✅ Extract stores
   const storesRaw = similarResults
-    .slice(0, 5)
+    .slice(0, 8) // slightly more to improve filtering later
     .map((item) => {
       const price = Number(extractPrice(item.price)) || 0;
+      const title = item.title?.toLowerCase() || "";
 
-      // filter unrealistic values
+      // ❌ remove junk listings
+      if (
+        title.includes("refurbished") ||
+        title.includes("used") ||
+        title.includes("renewed")
+      ) return null;
+
+      // ❌ remove unrealistic prices
       if (price < 1000 || price > 200000) return null;
 
       return {
@@ -67,7 +73,7 @@ async function searchProducts(query) {
     })
     .filter(Boolean);
 
-  // ✅ Remove duplicate stores (keep lowest price)
+  // ✅ Deduplicate stores (keep lowest price per store)
   const uniqueStores = Object.values(
     storesRaw.reduce((acc, store) => {
       if (!acc[store.name] || acc[store.name].price > store.price) {
@@ -77,13 +83,22 @@ async function searchProducts(query) {
     }, {})
   );
 
-  // ✅ Safe best price fallback
+  // ✅ Compute best price
   const bestPrice =
     uniqueStores.length > 0
       ? Math.min(...uniqueStores.map((s) => s.price))
       : Number(extractPrice(primaryProduct.price)) || 0;
 
-  // ✅ Demo price history (frontend graph)
+  // ✅ Filter out outlier prices (VERY IMPORTANT)
+  const filteredStores = uniqueStores.filter(
+    (s) => s.price >= bestPrice * 0.6 && s.price <= bestPrice * 1.4
+  );
+
+  // fallback if filtering too aggressive
+  const finalStores =
+    filteredStores.length > 0 ? filteredStores : uniqueStores;
+
+  // ✅ Demo history
   const history = [
     { date: "Jan", price: bestPrice + 4000 },
     { date: "Feb", price: bestPrice + 2800 },
@@ -101,7 +116,7 @@ async function searchProducts(query) {
       reviews: primaryProduct.reviews || 0,
       category: primaryProduct.category || "Electronics",
       currentPrice: bestPrice,
-      stores: uniqueStores,
+      stores: finalStores,
       history,
     },
   ];
