@@ -1,5 +1,5 @@
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
-import { db } from "../../frontend/src/config/firebase";
+import { db } from "../config/firebase";
 
 export async function getPriceHistory(productId) {
   try {

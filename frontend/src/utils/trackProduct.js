@@ -6,7 +6,7 @@ import {
   increment,
   serverTimestamp,
 } from "firebase/firestore";
-import { db } from "../../frontend/src/config/firebase";
+import { db } from "../config/firebase";
 
 export const trackProduct = async (product) => {
   if (!product?.id) return;

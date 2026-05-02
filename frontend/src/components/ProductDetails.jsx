@@ -1,8 +1,8 @@
 // 🔥 ONLY CHANGES ARE MARKED WITH ✅ COMMENTS
 
 import React, { useState, useEffect, useMemo } from "react";
-import { getPriceHistory } from "../../../backend/utils/getPriceHistory";
-import { trackProduct } from "../../../backend/utils/trackProduct";
+import { getPriceHistory } from "../utils/getPriceHistory";
+import { trackProduct } from "../utils/trackProduct";
 import {
   ArrowLeft,
   Heart,
