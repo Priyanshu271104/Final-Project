@@ -4,60 +4,61 @@ import ProductCard from "./ProductCard";
 import API_BASE_URL from "../config/api";
 
 const Results = ({ query, onBack, onSelectProduct }) => {
-const [loading, setLoading] = useState(false);  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState([]);
   const [error, setError] = useState(null); // Added error state
 
   useEffect(() => {
-  let isMounted = true;
+    let isMounted = true;
 
-  if (!query?.trim()) return;
+    if (!query?.trim()) return;
 
-  const fetchData = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/search?q=${encodeURIComponent(query)}`
-      );
-
-      let data;
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
 
       try {
-        data = await response.json();
-      } catch {
-        throw new Error("Invalid server response");
+        const response = await fetch(
+          `${API_BASE_URL}/api/search?q=${encodeURIComponent(query)}`,
+        );
+
+        let data;
+
+        try {
+          data = await response.json();
+        } catch {
+          throw new Error("Invalid server response");
+        }
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to fetch");
+        }
+
+        if (!data || data.length === 0) {
+          throw new Error("No products found for this search.");
+        }
+
+        if (isMounted) {
+          setResults(data);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Fetch error:", err);
+
+        if (isMounted) {
+          setError(err.message || "Something went wrong");
+          setResults([]);
+          setLoading(false);
+        }
       }
+    };
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch");
-      }
+    fetchData(); // ✅ THIS WAS MISSING
 
-      if (!data || data.length === 0) {
-        throw new Error("No products found for this search.");
-      }
-
-      if (isMounted) {
-        setResults(data);
-        setLoading(false);
-      }
-    } catch (err) {
-      console.error("Fetch error:", err);
-
-      if (isMounted) {
-        setError(err.message || "Something went wrong");
-        setResults([]);
-        setLoading(false);
-      }
-    }
-  };
-
-  fetchData(); // ✅ THIS WAS MISSING
-
-  return () => {
-    isMounted = false;
-  };
-},[query]);
+    return () => {
+      isMounted = false;
+    };
+  }, [query]);
 
   if (loading) {
     return (

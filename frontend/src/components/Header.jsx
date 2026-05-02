@@ -23,11 +23,13 @@ const Header = ({
         onClick={() => setView && setView("home")}
       >
         <div className="flex items-center justify-center w-10 h-10 text-sm">
-  <PriceLensLogo />
-</div>
+          <PriceLensLogo />
+        </div>
         <span className="text-2xl font-serif font-medium tracking-tight ml-1 leading-none">
-          {" "}
-          <span className={`${isHome ? "text-[#333333]" : "text-white font-semibold drop-shadow-sm"}`}>
+          
+          <span
+            className={`${isHome ? "text-[#333333]" : "text-white font-semibold drop-shadow-sm"}`}
+          >
             Price
           </span>
           <span className="text-[#a17a35]">Lens</span>
@@ -66,9 +68,7 @@ const Header = ({
             <div
               className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold shadow-md ${isHome ? "bg-gradient-to-tr from-blue-500 to-purple-500" : "bg-white/20 border border-white/30"}`}
             >
-              {(
-                (user.displayName || user.email || "U")[0] || "U"
-              ).toUpperCase()}{" "}
+              {(user?.displayName || user?.email || "U").charAt(0).toUpperCase()}
             </div>
 
             {/* Logout Button */}

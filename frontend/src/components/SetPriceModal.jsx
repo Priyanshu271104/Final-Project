@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import React, { useState, useEffect } from "react";
 import { X, Target } from "lucide-react";
 
@@ -16,6 +15,7 @@ const SetPriceModal = ({
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setValue(currentTarget ? String(currentTarget) : "");
       setError("");
     }
@@ -29,11 +29,11 @@ const SetPriceModal = ({
   const lowestSeen = historyPrices.length ? Math.min(...historyPrices) : null;
 
   const suggestedPrice =
-  lowestSeen && lowestSeen > 0
-    ? Math.floor(lowestSeen * 0.95)
-    : currentPrice > 0
-    ? Math.floor(currentPrice * 0.9)
-    : 0;
+    lowestSeen && lowestSeen > 0
+      ? Math.floor(lowestSeen * 0.95)
+      : currentPrice > 0
+        ? Math.floor(currentPrice * 0.9)
+        : 0;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -74,7 +74,8 @@ const SetPriceModal = ({
       >
         {/* HEADER */}
         <div className="flex items-start justify-between mb-5">
-<div className="flex items-center gap-2">            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
               <Target className="w-5 h-5 text-blue-600" />
             </div>
             <div>
@@ -100,7 +101,7 @@ const SetPriceModal = ({
             <p className="text-lg font-bold">
               {currentPrice > 0
                 ? `₹${currentPrice.toLocaleString("en-IN")}`
-                : "N/A"}{" "}
+                : "N/A"}
             </p>
           </div>
 

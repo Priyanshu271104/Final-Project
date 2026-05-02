@@ -189,7 +189,7 @@ const ProductDetails = ({
                   <p className="text-4xl font-bold text-slate-900">
                     {bestPrice > 0
                       ? `₹${bestPrice.toLocaleString("en-IN")}`
-                      : "Price unavailable"}{" "}
+                      : "Price unavailable"}
                   </p>
                 </div>
               </div>
@@ -265,7 +265,6 @@ const ProductDetails = ({
               <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={history}>
-                    {" "}
                     <defs>
                       <linearGradient
                         id="colorHistory"

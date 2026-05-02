@@ -68,7 +68,6 @@ export default function App() {
 
   return (
     <div className="font-sans antialiased bg-slate-50 min-h-screen text-slate-900">
-      
       {/* ❌ Error banner */}
       {wishlistError && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[999] bg-red-50 border border-red-200 text-red-700 px-6 py-3 rounded-xl shadow-lg">

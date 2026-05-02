@@ -60,7 +60,7 @@ const ProductCard = ({ product, onSelect }) => {
               <p className="text-3xl font-bold text-slate-900">
                 {bestPrice > 0
                   ? `₹${bestPrice.toLocaleString("en-IN")}`
-                  : "Price unavailable"}{" "}
+                  : "Price unavailable"}
               </p>
             </div>
 

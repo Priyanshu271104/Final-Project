@@ -57,7 +57,7 @@ const Hero = ({ onSearch }) => {
 
         {/* Popular Tags */}
         <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-blue-200/80 mt-8">
-          <TrendingUp className="w-4 h-4" />{" "}
+          <TrendingUp className="w-4 h-4" />
           <span className="font-medium">Popular:</span>
           {["iPhone 15", "Sony WH-1000XM5", "MacBook Air"].map((item) => (
             <button
