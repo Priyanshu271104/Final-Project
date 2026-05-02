@@ -4,8 +4,7 @@ import ProductCard from "./ProductCard";
 import API_BASE_URL from "../config/api";
 
 const Results = ({ query, onBack, onSelectProduct }) => {
-  const [loading, setLoading] = useState(true);
-  const [results, setResults] = useState([]);
+const [loading, setLoading] = useState(false);  const [results, setResults] = useState([]);
   const [error, setError] = useState(null); // Added error state
 
   useEffect(() => {

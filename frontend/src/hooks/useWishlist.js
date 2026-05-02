@@ -203,11 +203,12 @@ export default function useWishlist(currentUser) {
   };
 
   return {
-    wishlist,
-    wishlistLoading,
-    wishlistError,
-    toggleWishlist,
-    setTargetPrice,
-    clearTargetPrice,
-  };
+  wishlist,
+  wishlistLoading,
+  wishlistError,
+  setWishlistError, // ✅ ADD THIS
+  toggleWishlist,
+  setTargetPrice,
+  clearTargetPrice,
+};
 }

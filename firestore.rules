@@ -101,6 +101,9 @@ function isValidWishlistItem(data) {
       && (!('targetPrice' in data) || data.targetPrice == null || (data.targetPrice is number && data.targetPrice >= 0 && data.targetPrice < 100000000))
       && (!('lastTargetNotifiedPrice' in data) || data.lastTargetNotifiedPrice == null || data.lastTargetNotifiedPrice is number)
 && (!('addedAt' in data) || data.addedAt is timestamp);  }
+match /priceHistory/{productId}/daily/{docId} {
+  allow read: if true; // or restrict later if needed
+}
 
     // Deny all other paths by default.
     match /{document=**} {
