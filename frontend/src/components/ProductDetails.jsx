@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getPriceHistory } from "../utils/getPriceHistory";
+import { trackProduct } from "../utils/trackProduct";
 import {
   ArrowLeft,
   Heart,
@@ -24,6 +25,17 @@ import {
 
 // Import the helper function to generate competitor prices
 import SetPriceModal from "./SetPriceModal";
+const generateFallbackHistory = (price) => {
+  if (!price) return [];
+
+  return [
+    { date: "Jan", price: price * 1.08 },
+    { date: "Feb", price: price * 1.05 },
+    { date: "Mar", price: price * 1.03 },
+    { date: "Apr", price: price * 1.01 },
+    { date: "Now", price: price },
+  ];
+};
 
 const ProductDetails = ({
   product,
@@ -35,23 +47,46 @@ const ProductDetails = ({
   onSetTargetPrice,
   onClearTargetPrice,
 }) => {
+  const sortedStores = React.useMemo(() => {
+  return [...(product.stores || [])].sort(
+    (a, b) => (a.price || 0) - (b.price || 0)
+  );
+}, [product.stores]);
   // 1. Enrich the raw product data with simulated competitor prices (Amazon vs Flipkart etc.)
-  const validPrices = (product.stores || [])
-    .map((s) => s.price)
-    .filter((p) => p > 0);
+  const validPrices = sortedStores.map((s) => s.price).filter((p) => p > 0);
+  const handleWishlist = async (product) => {
+  const alreadyWishlisted = wishlist.some(
+    (item) => String(item.id) === String(product.id)
+  );
 
+  onToggleWishlist(product);
+
+  // 🔥 Only track when ADDING (not removing)
+  if (!alreadyWishlisted) {
+    try {
+      await trackProduct(product);
+    } catch (e) {
+      console.error("Tracking failed", e);
+    }
+  }
+};
   const bestPrice =
     validPrices.length > 0
       ? Math.min(...validPrices)
       : product.currentPrice || 0;
 
   // 3. Check if this product is already in the user's wishlist
-  const wishlistEntry = wishlist.find(
-    (item) => String(item.id) === String(product.id),
-  );
+  const wishlistEntry = (wishlist || []).find(
+  (item) => String(item.id) === String(product.id)
+);
   const isWishlisted = Boolean(wishlistEntry);
   const currentTarget = wishlistEntry?.targetPrice ?? null;
   const [history, setHistory] = useState([]);
+
+  const displayHistory =
+    history.length > 0
+      ? history
+      : generateFallbackHistory(product.currentPrice || 0);
   useEffect(() => {
     if (!product?.id) return;
 
@@ -68,6 +103,7 @@ const ProductDetails = ({
   }, [product?.id]);
 
   const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
+  if (!product) return null;
 
   const handleOpenPriceModal = () => {
     if (!user) {
@@ -106,7 +142,7 @@ const ProductDetails = ({
             {/* Wishlist + Set Price Buttons */}
             <div className="grid grid-cols-1 gap-4">
               <button
-                onClick={() => onToggleWishlist(product)}
+                onClick={() => handleWishlist(product)}
                 className={`flex items-center justify-center p-4 rounded-xl border shadow-sm transition-all group ${
                   isWishlisted
                     ? "bg-pink-50 border-pink-200 text-pink-600"
@@ -204,7 +240,7 @@ const ProductDetails = ({
                 </h3>
               </div>
               <div className="divide-y divide-slate-100">
-                {(product.stores || []).map((store, idx) => (
+                {sortedStores.map((store, idx) => (
                   <div
                     key={idx}
                     className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
@@ -252,11 +288,11 @@ const ProductDetails = ({
 
             {/* Price History Graph */}
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-              {history.length === 0 ? (
-                <p className="text-sm text-slate-400 mb-4">
-                  No price history yet. Start tracking to see trends.
+              {history.length === 0 && (
+                <p className="text-sm text-blue-500 mb-4">
+                  📊 Showing estimated trend. Tracking started.
                 </p>
-              ) : null}
+              )}
 
               <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-blue-600" /> Price History
@@ -264,7 +300,7 @@ const ProductDetails = ({
               </h3>
               <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={history}>
+                  <AreaChart data={displayHistory}>
                     <defs>
                       <linearGradient
                         id="colorHistory"
