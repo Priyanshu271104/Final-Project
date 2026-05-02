@@ -187,11 +187,26 @@ async function checkPricesOnce() {
         price: newPrice,
         link: newLink,
       } = extractLatestPrice(results);
+      
 
       if (!newPrice) {
         report.groupsChecked++;
         continue;
       }
+      // ✅ SAVE PRICE HISTORY (NEW CODE)
+
+const today = new Date().toISOString().split("T")[0];
+
+const historyRef = firestore
+  .collection("priceHistory")
+  .doc(String(product.productId))
+  .collection("daily")
+  .doc(today);
+
+await historyRef.set({
+  price: newPrice,
+  updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+});
 
       const wishlistSnapshot =
         await firestore
