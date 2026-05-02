@@ -1,22 +1,22 @@
 import React from "react";
 import { Star, ArrowRight } from "lucide-react";
 
-
 const ProductCard = ({ product, onSelect }) => {
   // Logic: Find the lowest price among all available stores
   // If no specific stores are listed, fall back to the main 'currentPrice'
-  
+if (!product) return null;
 
+  const rating = product.rating || 0;
+  const sortedStores = [...((product && product.stores) || [])].sort(
+    (a, b) => (a.price || 0) - (b.price || 0),
+  );
+  const validPrices = sortedStores
+    .map((s) => s?.price || 0)
+    .filter((p) => p > 0);
   const bestPrice =
     validPrices.length > 0
       ? Math.min(...validPrices)
       : product.currentPrice || 0;
-  const rating = product.rating || 0;
-const sortedStores = [...(product.stores || [])].sort(
-  (a, b) => a.price - b.price
-);
-const validPrices = sortedStores.map((s) => s.price)
-    .filter((p) => p > 0);
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-all duration-300 group">
       <div className="flex flex-col md:flex-row">

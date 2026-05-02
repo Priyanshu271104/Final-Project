@@ -14,5 +14,9 @@ router.post(
   '/internal/cron/check-prices',
   checkPricesController
 );
+router.get(
+  '/cron/run',
+  checkPricesController
+);
 
 module.exports = router;

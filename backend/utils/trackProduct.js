@@ -1,5 +1,12 @@
-import { doc, getDoc, setDoc, updateDoc, increment, serverTimestamp } from "firebase/firestore";
-import { db } from "../config/firebase";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  increment,
+  serverTimestamp,
+} from "firebase/firestore";
+import { db } from "../../frontend/src/config/firebase";
 
 export const trackProduct = async (product) => {
   if (!product?.id) return;
@@ -12,16 +19,23 @@ export const trackProduct = async (product) => {
     await setDoc(ref, {
       productId: String(product.id),
       productName: product.name || "Unknown",
+
+      userEmail: product.userEmail || null, // ✅ NEW
+      targetPrice: product.targetPrice || null, // ✅ NEW
+
       watchersCount: 1,
       isActive: true,
       lastCheckedAt: null,
       createdAt: serverTimestamp(),
     });
   } else {
-    // 🔥 already exists → increment watchers
+    // 🔥 already exists → update user + increment
     await updateDoc(ref, {
       watchersCount: increment(1),
       isActive: true,
+
+      userEmail: product.userEmail || null, // ✅ UPDATE
+      targetPrice: product.targetPrice || null, // ✅ UPDATE
     });
   }
 };
