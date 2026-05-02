@@ -12,7 +12,6 @@ const router = express.Router();
 
 router.post(
   '/internal/cron/check-prices',
-  verifyFirebaseToken,
   checkPricesController
 );
 

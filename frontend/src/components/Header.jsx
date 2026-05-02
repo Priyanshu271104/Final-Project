@@ -10,7 +10,7 @@ const Header = ({ setView, user, onAuthRequest, onLogout, onWishlistClick, view 
     <header className={`fixed top-0 left-0 right-0 z-50 shadow-sm h-16 flex items-center justify-between px-4 md:px-8 lg:px-16 transition-colors duration-300 ${isHome ? 'bg-white' : 'bg-gradient-to-r from-[#1a3c8a] to-[#3b82f6]'}`}>
       
       {/* Logo Section - Click to go Home */}
-      <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setView('home')}>
+      <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setView && setView('home')}>
         <div className="relative flex items-center justify-center">
           {/* Using the separate Logo Component */}
           <PriceLensLogo />
@@ -43,7 +43,7 @@ const Header = ({ setView, user, onAuthRequest, onLogout, onWishlistClick, view 
 
              {/* User Avatar Circle */}
              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold shadow-md ${isHome ? 'bg-gradient-to-tr from-blue-500 to-purple-500' : 'bg-white/20 border border-white/30'}`}>
-               {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+               ((user.displayName || user.email || 'U')[0] || 'U').toUpperCase()
              </div>
 
              {/* Logout Button */}

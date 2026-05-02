@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "./hooks/useAuth";
-
 import useWishlist from "./hooks/useWishlist";
 
 import Header from "./components/Header";
@@ -22,6 +21,7 @@ export default function App() {
     wishlist,
     wishlistLoading,
     wishlistError,
+    setWishlistError, // ✅ added
     toggleWishlist,
     setTargetPrice,
     clearTargetPrice,
@@ -29,6 +29,17 @@ export default function App() {
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
+
+  // 🔥 auto-hide wishlist error
+  useEffect(() => {
+    if (!wishlistError) return;
+
+    const timer = setTimeout(() => {
+      setWishlistError("");
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [wishlistError, setWishlistError]);
 
   const handleSearch = (query) => {
     setSearchQuery(query);
@@ -45,26 +56,33 @@ export default function App() {
     setAuthMode(mode);
     setIsAuthModalOpen(true);
   };
+
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <p className="text-slate-500 font-medium">Loading...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-slate-500 mt-4 font-medium">Loading...</p>
       </div>
     );
   }
 
   return (
     <div className="font-sans antialiased bg-slate-50 min-h-screen text-slate-900">
+      
+      {/* ❌ Error banner */}
       {wishlistError && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[999] bg-red-50 border border-red-200 text-red-700 px-6 py-3 rounded-xl shadow-lg">
           {wishlistError}
         </div>
       )}
+
+      {/* 🔄 Loading indicator */}
       {wishlistLoading && (
         <div className="fixed top-20 right-6 z-[999] bg-white border border-slate-200 px-4 py-2 rounded-lg shadow-md text-sm font-medium text-slate-700">
           Updating wishlist...
         </div>
       )}
+
       <Header
         setView={setView}
         user={currentUser}
@@ -91,21 +109,19 @@ export default function App() {
           user={currentUser}
           onAuthRequest={requireLogin}
           wishlist={wishlist}
-          onToggleWishlist={(product) => {
+          onToggleWishlist={async (product) => {
             if (!currentUser) {
               requireLogin();
               return;
             }
-
-            toggleWishlist(product);
+            await toggleWishlist(product);
           }}
-          onSetTargetPrice={(product, price) => {
+          onSetTargetPrice={async (product, price) => {
             if (!currentUser) {
               requireLogin();
               return;
             }
-
-            setTargetPrice(product, price);
+            await setTargetPrice(product, price);
           }}
           onClearTargetPrice={clearTargetPrice}
         />

@@ -25,14 +25,15 @@ const SetPriceModal = ({
 
   const currentPrice = product.currentPrice || 0;
 
-  const historyPrices = history.map((h) => h.price).filter(Boolean);
-  const lowestSeen = historyPrices.length
-    ? Math.min(...historyPrices)
-    : null;
+  const historyPrices = (history || []).map((h) => h.price).filter(Boolean);
+  const lowestSeen = historyPrices.length ? Math.min(...historyPrices) : null;
 
-  const suggestedPrice = lowestSeen
+  const suggestedPrice =
+  lowestSeen && lowestSeen > 0
     ? Math.floor(lowestSeen * 0.95)
-    : Math.floor(currentPrice * 0.9);
+    : currentPrice > 0
+    ? Math.floor(currentPrice * 0.9)
+    : 0;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -47,8 +48,8 @@ const SetPriceModal = ({
     if (n >= currentPrice) {
       setError(
         `Target must be LOWER than current price (₹${currentPrice.toLocaleString(
-          "en-IN"
-        )})`
+          "en-IN",
+        )})`,
       );
       return;
     }
@@ -91,24 +92,22 @@ const SetPriceModal = ({
         </div>
 
         {/* PRODUCT NAME */}
-        <p className="text-sm mb-4 font-medium">
-          {product.name}
-        </p>
+        <p className="text-sm mb-4 font-medium">{product.name}</p>
 
         {/* PRICE INFO */}
         <div className="grid grid-cols-2 gap-3 mb-5">
           <div className="bg-slate-50 p-3 rounded-xl">
             <p className="text-xs text-slate-500">Current</p>
             <p className="text-lg font-bold">
-              ₹{currentPrice.toLocaleString("en-IN")}
+              {currentPrice > 0
+                ? `₹${currentPrice.toLocaleString("en-IN")}`
+                : "N/A"}{" "}
             </p>
           </div>
 
           {lowestSeen != null && (
             <div className="bg-slate-50 p-3 rounded-xl">
-              <p className="text-xs text-slate-500">
-                Lowest seen
-              </p>
+              <p className="text-xs text-slate-500">Lowest seen</p>
               <p className="text-lg font-bold text-green-600">
                 ₹{lowestSeen.toLocaleString("en-IN")}
               </p>
@@ -135,19 +134,13 @@ const SetPriceModal = ({
           {/* 🔥 SUGGEST BUTTON (NOW CORRECT PLACE) */}
           <button
             type="button"
-            onClick={() =>
-              setValue(String(suggestedPrice))
-            }
+            onClick={() => setValue(String(suggestedPrice))}
             className="text-xs text-blue-600 underline mt-2"
           >
             Suggest ₹{suggestedPrice.toLocaleString("en-IN")}
           </button>
 
-          {error && (
-            <p className="text-red-600 mt-2 text-sm">
-              {error}
-            </p>
-          )}
+          {error && <p className="text-red-600 mt-2 text-sm">{error}</p>}
 
           <div className="flex gap-3 mt-5">
             {currentTarget != null && (
@@ -164,9 +157,7 @@ const SetPriceModal = ({
               type="submit"
               className="flex-1 bg-blue-600 text-white py-2 rounded-xl"
             >
-              {currentTarget != null
-                ? "Update"
-                : "Set Target"}
+              {currentTarget != null ? "Update" : "Set Target"}
             </button>
           </div>
         </form>

@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from "react";
 import {
   collection,
@@ -17,9 +16,9 @@ import { db } from "../config/firebase";
 export default function useWishlist(currentUser) {
   const [wishlist, setWishlist] = useState([]);
   const [wishlistLoading, setWishlistLoading] = useState(false);
-
   const [wishlistError, setWishlistError] = useState("");
 
+  // 🔁 realtime wishlist listener
   useEffect(() => {
     if (!currentUser) {
       setWishlist([]);
@@ -29,16 +28,21 @@ export default function useWishlist(currentUser) {
     const wishlistRef = collection(db, "users", currentUser.uid, "wishlist");
 
     const unsubscribe = onSnapshot(wishlistRef, (snapshot) => {
-      const items = snapshot.docs.map((doc) => doc.data());
+      const items = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
       setWishlist(items);
     });
 
     return () => unsubscribe();
   }, [currentUser]);
 
+  // ⚠️ NOTE: Not atomic — can be improved using transactions
   const updateQueue = async (product, change) => {
-    const queueRef = doc(db, "priceCheckQueue", String(product.id));
+    // TODO: replace with Firestore transaction for concurrency safety
 
+    const queueRef = doc(db, "priceCheckQueue", String(product.id));
     const queueSnap = await getDoc(queueRef);
 
     if (change > 0) {
@@ -75,13 +79,13 @@ export default function useWishlist(currentUser) {
     }
   };
 
+  // ❤️ Add / Remove wishlist
   const toggleWishlist = async (product) => {
+    if (!currentUser) return false;
+
     setWishlistLoading(true);
     setWishlistError("");
-if (!currentUser) {
-  setWishlistLoading(false);
-  return false;
-}
+
     const productRef = doc(
       db,
       "users",
@@ -92,43 +96,40 @@ if (!currentUser) {
 
     const exists = wishlist.some((p) => String(p.id) === String(product.id));
 
-    try{if (exists) {
-      await deleteDoc(productRef);
-      await updateQueue(product, -1);
-    } else {
-      await setDoc(productRef, {
-        ...product,
-        baselinePrice: product.currentPrice,
-        lastCheckedPrice: product.currentPrice,
-        lastNotifiedPrice: null,
-        notifyEmail: true,
-        addedAt: serverTimestamp(),
-      });
+    try {
+      if (exists) {
+        await deleteDoc(productRef);
+        await updateQueue(product, -1);
+      } else {
+        await setDoc(productRef, {
+          ...product,
+          baselinePrice: product.currentPrice,
+          lastCheckedPrice: product.currentPrice,
+          lastNotifiedPrice: null,
+          notifyEmail: true,
+          addedAt: serverTimestamp(),
+        });
 
-      await updateQueue(product, 1);
-    }}
-    catch (error) {
-   console.error(error);
+        await updateQueue(product, 1);
+      }
 
-   setWishlistError(
-     "Failed to update wishlist"
-   );
-
-   setWishlistLoading(false);
-   return false;
-}
-    setWishlistLoading(false);
-
-    return true;
+      return true;
+    } catch (error) {
+      console.error(error);
+      setWishlistError("Failed to update wishlist");
+      return false;
+    } finally {
+      setWishlistLoading(false);
+    }
   };
 
+  // 🎯 Set target price
   const setTargetPrice = async (product, targetPrice) => {
+    if (!currentUser) return false;
+
     setWishlistLoading(true);
-setWishlistError("");
-if (!currentUser) {
-  setWishlistLoading(false);
-  return false;
-}
+    setWishlistError("");
+
     const productRef = doc(
       db,
       "users",
@@ -139,80 +140,74 @@ if (!currentUser) {
 
     const exists = wishlist.some((p) => String(p.id) === String(product.id));
 
-    try{if (!exists) {
-      await setDoc(productRef, {
-        ...product,
-        baselinePrice: product.currentPrice,
-        lastCheckedPrice: product.currentPrice,
-        lastNotifiedPrice: null,
-        notifyEmail: true,
-        targetPrice,
-        lastTargetNotifiedPrice: null,
-        addedAt: serverTimestamp(),
-      });
+    try {
+      if (!exists) {
+        await setDoc(productRef, {
+          ...product,
+          baselinePrice: product.currentPrice,
+          lastCheckedPrice: product.currentPrice,
+          lastNotifiedPrice: null,
+          notifyEmail: true,
+          targetPrice,
+          lastTargetNotifiedPrice: null,
+          addedAt: serverTimestamp(),
+        });
 
-      await updateQueue(product, 1);
-    } else {
-      await updateDoc(productRef, {
-        targetPrice,
-        lastTargetNotifiedPrice: null,
-      });
-    }}catch(error) {
-  console.error(error);
+        await updateQueue(product, 1);
+      } else {
+        await updateDoc(productRef, {
+          targetPrice,
+          lastTargetNotifiedPrice: null,
+        });
+      }
 
-  setWishlistError(
-    "Failed to set target price"
-  );
-
-  setWishlistLoading(false);
-  return false;
-}setWishlistLoading(false);
-
-    return true;
+      return true;
+    } catch (error) {
+      console.error(error);
+      setWishlistError("Failed to set target price");
+      return false;
+    } finally {
+      setWishlistLoading(false);
+    }
   };
 
+  // ❌ Clear target price
   const clearTargetPrice = async (product) => {
-  setWishlistLoading(true);
-  setWishlistError("");
+    if (!currentUser) return false;
 
-  if (!currentUser) {
-    setWishlistLoading(false);
-    return false;
-  }
+    setWishlistLoading(true);
+    setWishlistError("");
 
-  const productRef = doc(
-    db,
-    "users",
-    currentUser.uid,
-    "wishlist",
-    String(product.id)
-  );
-
-  try {
-    await updateDoc(productRef, {
-      targetPrice: null,
-      lastTargetNotifiedPrice: null,
-    });
-
-    setWishlistLoading(false);
-    return true;
-  } catch (error) {
-    console.error(error);
-
-    setWishlistError(
-      "Failed to clear target price"
+    const productRef = doc(
+      db,
+      "users",
+      currentUser.uid,
+      "wishlist",
+      String(product.id),
     );
 
-    setWishlistLoading(false);
-    return false;
-  }
-};
-return {
-  wishlist,
-  wishlistLoading,
-  wishlistError,
-  toggleWishlist,
-  setTargetPrice,
-  clearTargetPrice,
-};
+    try {
+      await updateDoc(productRef, {
+        targetPrice: null,
+        lastTargetNotifiedPrice: null,
+      });
+
+      return true;
+    } catch (error) {
+      console.error(error);
+      setWishlistError("Failed to clear target price");
+      return false;
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
+  return {
+    wishlist,
+    wishlistLoading,
+    wishlistError,
+    toggleWishlist,
+    setTargetPrice,
+    clearTargetPrice,
+  };
 }

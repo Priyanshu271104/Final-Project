@@ -10,9 +10,6 @@ export function useAuth() {
   const [currentUser, setCurrentUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState("login");
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
@@ -34,9 +31,5 @@ export function useAuth() {
     currentUser,
     authLoading,
     logout,
-    isAuthModalOpen,
-    setIsAuthModalOpen,
-    authMode,
-    setAuthMode,
   };
 }

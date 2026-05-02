@@ -18,10 +18,8 @@ async function verifyFirebaseToken(
       });
     }
 
-    const idToken =
-  authHeader.replace('Bearer ', '');
-if (!admin.apps.length) {
-  return res.status(503).json({
+    const idToken = authHeader.split(' ')[1];
+if (!admin || !admin.apps || !admin.apps.length){  return res.status(503).json({
     error: 'Authentication service unavailable',
   });
 }

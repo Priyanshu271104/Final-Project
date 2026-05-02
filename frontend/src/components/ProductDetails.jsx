@@ -36,10 +36,14 @@ const ProductDetails = ({
   onClearTargetPrice,
 }) => {
   // 1. Enrich the raw product data with simulated competitor prices (Amazon vs Flipkart etc.)
+  const validPrices = (product.stores || [])
+    .map((s) => s.price)
+    .filter((p) => p > 0);
+
   const bestPrice =
-    product.stores && product.stores.length > 0
-      ? Math.min(...product.stores.map((store) => store.price))
-      : product.currentPrice;
+    validPrices.length > 0
+      ? Math.min(...validPrices)
+      : product.currentPrice || 0;
 
   // 3. Check if this product is already in the user's wishlist
   const wishlistEntry = wishlist.find(
@@ -183,7 +187,9 @@ const ProductDetails = ({
                 <div className="text-right">
                   <p className="text-sm text-slate-500 mb-1">Best Price</p>
                   <p className="text-4xl font-bold text-slate-900">
-                    ₹{bestPrice.toLocaleString("en-IN")}
+                    {bestPrice > 0
+                      ? `₹${bestPrice.toLocaleString("en-IN")}`
+                      : "Price unavailable"}{" "}
                   </p>
                 </div>
               </div>
@@ -198,7 +204,7 @@ const ProductDetails = ({
                 </h3>
               </div>
               <div className="divide-y divide-slate-100">
-                {product.stores.map((store, idx) => (
+                {(product.stores || []).map((store, idx) => (
                   <div
                     key={idx}
                     className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
@@ -231,7 +237,9 @@ const ProductDetails = ({
                         )}
                       </div>
                       <button
-                        onClick={() => window.open(store.link, "_blank")}
+                        onClick={() =>
+                          store.link && window.open(store.link, "_blank")
+                        }
                         className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
                       >
                         Buy <ExternalLink className="w-4 h-4" />
@@ -256,7 +264,7 @@ const ProductDetails = ({
               </h3>
               <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={history.length ? history : []}>
+                  <AreaChart data={history}>
                     {" "}
                     <defs>
                       <linearGradient
@@ -305,7 +313,7 @@ const ProductDetails = ({
                       }}
                       itemStyle={{ color: "#2563eb", fontWeight: "bold" }}
                       formatter={(value) => [
-                        `₹${value.toLocaleString()}`,
+                        value ? `₹${value.toLocaleString()}` : "N/A",
                         "Price",
                       ]}
                     />

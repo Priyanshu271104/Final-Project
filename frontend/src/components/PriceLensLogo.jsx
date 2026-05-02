@@ -11,21 +11,21 @@ const PriceLensLogo = () => (
   >
     <defs>
       {/* 1. Deep Blue Metallic Gradient for the Ring */}
-      <linearGradient id="rimGradient" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <linearGradient id="pl-rimGradient" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
         <stop offset="0%" stopColor="#1e3a8a" />
         <stop offset="50%" stopColor="#3b82f6" />
         <stop offset="100%" stopColor="#172554" />
       </linearGradient>
 
       {/* 2. Golden Gradient for the Rupee Symbol */}
-      <linearGradient id="goldGradient" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <linearGradient id="pl-goldGradient" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
         <stop offset="0%" stopColor="#d4af37" />
         <stop offset="40%" stopColor="#fcd34d" />
         <stop offset="100%" stopColor="#856838" />
       </linearGradient>
 
       {/* 3. Glass Reflection Effect */}
-      <linearGradient id="glassGradient" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+      <linearGradient id="pl-glassGradient" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
         <stop offset="0%" stopColor="white" stopOpacity="0.9" />
         <stop offset="100%" stopColor="#e0f2fe" stopOpacity="0.1" />
       </linearGradient>
