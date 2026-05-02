@@ -74,8 +74,7 @@ const SetPriceModal = ({
       >
         {/* HEADER */}
         <div className="flex items-start justify-between mb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+<div className="flex items-center gap-2">            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
               <Target className="w-5 h-5 text-blue-600" />
             </div>
             <div>
