@@ -35,18 +35,32 @@ async function searchProducts(query) {
     ) || results[0];
 
   // ✅ Extract keyword safely
-  const keyword =
-    primaryProduct.title?.split(" ")[0]?.toLowerCase() ||
-    trimmed.toLowerCase();
-
+  const keywordParts = trimmed.toLowerCase().split(" ").slice(0, 2); 
+// e.g. "iphone 16"
   // ✅ Filter similar items
-  const similarResults = results.filter((item) =>
-    item.title?.toLowerCase().includes(keyword)
-  );
+  const baseTitle = primaryProduct.title?.toLowerCase() || "";
+
+const similarResults = results.filter((item) => {
+  const title = item.title?.toLowerCase() || "";
+
+  // keyword match
+  if (!keywordParts.every(k => title.includes(k))) return false;
+
+  // avoid mixing variants
+  if (baseTitle.includes("pro") && !title.includes("pro")) return false;
+  if (!baseTitle.includes("pro") && title.includes("pro")) return false;
+
+  if (baseTitle.includes("max") && !title.includes("max")) return false;
+  if (!baseTitle.includes("max") && title.includes("max")) return false;
+
+  if (baseTitle.includes("plus") && !title.includes("plus")) return false;
+  if (!baseTitle.includes("plus") && title.includes("plus")) return false;
+
+  return true;
+});
 
   // ✅ Extract store data with classification
   const storesRaw = similarResults
-    .slice(0, 10)
     .map((item) => {
       const price = Number(extractPrice(item.price)) || 0;
       const title = item.title?.toLowerCase() || "";
@@ -72,7 +86,9 @@ async function searchProducts(query) {
         type: isResale ? "resale" : "retail", // ✅ KEY ADDITION
       };
     })
-    .filter(Boolean);
+    .filter(Boolean).slice(0, 20);
+        
+
 
   // ✅ Deduplicate stores (lowest price per store)
   const uniqueStores = Object.values(
@@ -103,21 +119,28 @@ async function searchProducts(query) {
       : Math.round((sorted[mid - 1] + sorted[mid]) / 2);
   };
 
-  const baseline = median(prices) || prices[0] || 0;
-
+const baseline =
+  prices.length >= 3
+    ? median(prices)
+    : Math.min(...prices);
   // ✅ Filter only extreme outliers (loose range)
-  const filteredStores = uniqueStores.filter(
-    (s) => s.price >= baseline * 0.5 && s.price <= baseline * 1.8
-  );
+  const filterSource =
+  retailStores.length > 0 ? retailStores : uniqueStores;
+
+const filteredStores = filterSource.filter(
+  (s) => s.price >= baseline * 0.5 && s.price <= baseline * 1.8
+);
 
   const finalStores =
     filteredStores.length >= 2 ? filteredStores : uniqueStores;
 
   // ✅ Best price
   const bestPrice =
-    finalStores.length > 0
-      ? Math.min(...finalStores.map((s) => s.price))
-      : Number(extractPrice(primaryProduct.price)) || 0;
+  retailStores.length > 0
+    ? Math.min(...retailStores.map((s) => s.price))
+    : finalStores.length > 0
+    ? Math.min(...finalStores.map((s) => s.price))
+    : Number(extractPrice(primaryProduct.price)) || 0;
 
   // ✅ Demo history
   const history = [
